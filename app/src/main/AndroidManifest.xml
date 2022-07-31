@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.github.tvbox.osc">
 
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -39,10 +46,19 @@
         <activity
             android:name=".ui.activity.LivePlayActivity"
             android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="sensorLandscape" />
+            android:screenOrientation="sensorLandscape"
+            android:supportsPictureInPicture="true"
+            android:configChanges=
+                "screenSize|smallestScreenSize|screenLayout|orientation">
+        </activity>
         <activity
             android:name=".ui.activity.DetailActivity"
-            android:screenOrientation="sensorLandscape" />
+            android:theme="@style/AppTheme.ActionBar"
+            android:screenOrientation="sensorLandscape"
+            android:supportsPictureInPicture="true"
+            android:configChanges=
+                "screenSize|smallestScreenSize|screenLayout|orientation">
+        </activity>
         <activity
             android:name=".ui.activity.PlayActivity"
             android:theme="@style/AppTheme.NoActionBar"
