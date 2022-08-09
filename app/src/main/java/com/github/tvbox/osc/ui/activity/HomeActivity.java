@@ -8,6 +8,7 @@ import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.KeyEvent;
@@ -68,6 +69,10 @@ import java.util.List;
 import me.jessyan.autosize.utils.AutoSizeUtils;
 
 public class HomeActivity extends BaseActivity {
+
+    // takagen99: Added to allow read string
+    private static Resources res;
+
     private LinearLayout topLayout;
     private LinearLayout contentLayout;
     private TextView tvDate;
@@ -91,7 +96,7 @@ public class HomeActivity extends BaseActivity {
         public void run() {
             Date date = new Date();
             @SuppressLint("SimpleDateFormat")
-            SimpleDateFormat timeFormat = new SimpleDateFormat("dd MMM yyyy" + ", " + "EE hh:mm aa");
+            SimpleDateFormat timeFormat = new SimpleDateFormat(getString(R.string.hm_date1) + " , " + getString(R.string.hm_date2));
             tvDate.setText(timeFormat.format(date));
             mHandler.postDelayed(this, 1000);
         }
@@ -106,6 +111,9 @@ public class HomeActivity extends BaseActivity {
 
     @Override
     protected void init() {
+        // takagen99: Added to allow read string
+        res = getResources();
+
         EventBus.getDefault().register(this);
         ControlManager.get().startServer();
         initView();
@@ -117,6 +125,11 @@ public class HomeActivity extends BaseActivity {
             useCacheConfig = bundle.getBoolean("useCache", false);
         }
         initData();
+    }
+
+    // takagen99: Added to allow read string
+    public static Resources getRes() {
+        return res;
     }
 
     private void initView() {
@@ -211,10 +224,17 @@ public class HomeActivity extends BaseActivity {
     private boolean dataInitOk = false;
     private boolean jarInitOk = false;
 
+    // takagen99 : Switch to show / hide source title
+    boolean HomeShow = Hawk.get(HawkConfig.HOME_SHOW_SOURCE, false);
     private void initData() {
         SourceBean home = ApiConfig.get().getHomeSourceBean();
-        if (home != null && home.getName() != null && !home.getName().isEmpty())
-            tvName.setText(home.getName());
+
+        // takagen99 : Switch to show / hide source title
+        if (HomeShow) {
+            if (home != null && home.getName() != null && !home.getName().isEmpty())
+                tvName.setText(home.getName());
+        }
+
         if (dataInitOk && jarInitOk) {
             showLoading();
             sourceViewModel.getSort(ApiConfig.get().getHomeSourceBean().getKey());
@@ -236,7 +256,7 @@ public class HomeActivity extends BaseActivity {
                             @Override
                             public void run() {
                                 if (!useCacheConfig)
-                                    Toast.makeText(HomeActivity.this, "Load Complete", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(HomeActivity.this, getString(R.string.hm_ok), Toast.LENGTH_SHORT).show();
                                 initData();
                             }
                         }, 50);
@@ -253,7 +273,7 @@ public class HomeActivity extends BaseActivity {
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(HomeActivity.this, "Load Fail", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(HomeActivity.this, getString(R.string.hm_notok), Toast.LENGTH_SHORT).show();
                                 initData();
                             }
                         });
@@ -306,7 +326,7 @@ public class HomeActivity extends BaseActivity {
                     @Override
                     public void run() {
                         if (dialog == null)
-                            dialog = new TipDialog(HomeActivity.this, msg, "Retry", "Cancel", new TipDialog.OnListener() {
+                            dialog = new TipDialog(HomeActivity.this, msg, getString(R.string.hm_retry), getString(R.string.hm_cancel), new TipDialog.OnListener() {
                                 @Override
                                 public void left() {
                                     mHandler.post(new Runnable() {
@@ -406,7 +426,7 @@ public class HomeActivity extends BaseActivity {
             super.onBackPressed();
         } else {
             mExitTime = System.currentTimeMillis();
-            Toast.makeText(mContext, "Press BACK again to EXIT", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, getString(R.string.hm_exit), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -536,6 +556,7 @@ public class HomeActivity extends BaseActivity {
         ControlManager.get().stopServer();
     }
 
+    // Site Switch on Home Button
     void showSiteSwitch() {
         List<SourceBean> sites = ApiConfig.get().getSourceBeanList();
         if (sites.size() > 0) {
