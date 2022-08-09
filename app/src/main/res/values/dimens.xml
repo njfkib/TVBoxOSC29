@@ -37,6 +37,7 @@
     <dimen name="vs_95">95mm</dimen>
     <dimen name="vs_98">98mm</dimen>
     <dimen name="vs_100">100mm</dimen>
+    <dimen name="vs_110">110mm</dimen>
     <dimen name="vs_120">120mm</dimen>
     <dimen name="vs_128">128mm</dimen>
     <dimen name="vs_140">140mm</dimen>
