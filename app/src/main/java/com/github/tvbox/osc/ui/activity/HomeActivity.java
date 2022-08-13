@@ -226,6 +226,7 @@ public class HomeActivity extends BaseActivity {
 
     // takagen99 : Switch to show / hide source title
     boolean HomeShow = Hawk.get(HawkConfig.HOME_SHOW_SOURCE, false);
+
     private void initData() {
         SourceBean home = ApiConfig.get().getHomeSourceBean();
 
@@ -408,14 +409,15 @@ public class HomeActivity extends BaseActivity {
             return;
         }
         BaseLazyFragment baseLazyFragment = this.fragments.get(i);
-        View view = this.sortFocusView;
-        if (view != null && !view.isFocused()) {
-            this.sortFocusView.requestFocus();
-            if (i == 0) { // 只有我的页面 才滚动到顶部
-                baseLazyFragment.scrollTop();
+        if (baseLazyFragment instanceof GridFragment) {
+            View view = this.sortFocusView;
+            if (view != null && !view.isFocused()) {
+                this.sortFocusView.requestFocus();
+            } else if (this.sortFocused != 0) {
+                this.mGridView.setSelection(0);
+            } else {
+                exit();
             }
-        } else if (this.sortFocused != 0) {
-            this.mGridView.setSelection(0);
         } else {
             exit();
         }
