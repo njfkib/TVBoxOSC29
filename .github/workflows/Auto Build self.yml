@@ -1,8 +1,6 @@
 name: Auto Build self
 
 on:
-  schedule:
-    - cron: 20,50 0-18 * * *
   push:
     branches:
       - main
@@ -74,12 +72,6 @@ jobs:
           for file in `find ~ -name "*debug*.apk" -print`; do
             mv "$file" apk/TVBox_takagen99_${{ env.tag }}_Debug.apk
           done
-      - name: Upload App To Artifact
-        uses: actions/upload-artifact@v3
-        if: ${{ env.commit }}
-        with:
-          name: TVBox_takagen99_Release_and_Debug
-          path: TVBoxOSC/apk/*
       - name: Release and Upload Assets
         uses: softprops/action-gh-release@v1
         if: ${{ env.commit }}
