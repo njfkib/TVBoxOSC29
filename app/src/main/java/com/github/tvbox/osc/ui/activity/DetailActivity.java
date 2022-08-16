@@ -165,7 +165,14 @@ public class DetailActivity extends BaseActivity {
             public void onClick(View v) {
                 if (vodInfo != null && vodInfo.seriesMap.size() > 0) {
                     vodInfo.reverseSort = !vodInfo.reverseSort;
+                    preFlag = "";
+                    if (vodInfo.seriesMap.get(vodInfo.playFlag).size() > vodInfo.playIndex) {
+                        vodInfo.seriesMap.get(vodInfo.playFlag).get(vodInfo.playIndex).selected = false;
+                    }
                     vodInfo.reverse();
+                    if (vodInfo.seriesMap.get(vodInfo.playFlag).size() > vodInfo.playIndex) {
+                        vodInfo.seriesMap.get(vodInfo.playFlag).get(vodInfo.playIndex).selected = true;
+                    }
                     insertVod(sourceKey, vodInfo);
                     seriesAdapter.notifyDataSetChanged();
                 }
@@ -180,6 +187,13 @@ public class DetailActivity extends BaseActivity {
                 } else {
                     jumpToPlay();
                 }
+            }
+        });
+        llPlayerFragmentContainerBlock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FastClickCheckUtil.check(v);
+                toggleFullPreview();
             }
         });
         tvQuickSearch.setOnClickListener(new View.OnClickListener() {
@@ -695,7 +709,7 @@ public class DetailActivity extends BaseActivity {
         EventBus.getDefault().unregister(this);
     }
 
-    // takagen99
+    // takagen99 : Check for PiP supported
     public boolean supportsPiPMode() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
@@ -752,17 +766,18 @@ public class DetailActivity extends BaseActivity {
         return super.dispatchKeyEvent(event);
     }
 
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        if (showPreview && !fullWindows) {
-            Rect editTextRect = new Rect();
-            llPlayerFragmentContainerBlock.getHitRect(editTextRect);
-            if (editTextRect.contains((int) ev.getX(), (int) ev.getY())) {
-                return true;
-            }
-        }
-        return super.dispatchTouchEvent(ev);
-    }
+    // takagen99 : Commented out to allow monitor Click Event
+    //@Override
+    //public boolean dispatchTouchEvent(MotionEvent ev) {
+    //    if (showPreview && !fullWindows) {
+    //        Rect editTextRect = new Rect();
+    //        llPlayerFragmentContainerBlock.getHitRect(editTextRect);
+    //        if (editTextRect.contains((int) ev.getX(), (int) ev.getY())) {
+    //            return true;
+    //        }
+    //    }
+    //    return super.dispatchTouchEvent(ev);
+    //}
 
     // preview : true 开启 false 关闭
     VodInfo previewVodInfo = null;
