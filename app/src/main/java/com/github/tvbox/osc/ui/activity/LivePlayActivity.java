@@ -98,16 +98,7 @@ public class LivePlayActivity extends BaseActivity {
     protected void init() {
 
         // takagen99 : Hide only when video playing
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            int uiOptions = getWindow().getDecorView().getSystemUiVisibility();
-            uiOptions |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-            uiOptions |= View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-            uiOptions |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-            uiOptions |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            uiOptions |= View.SYSTEM_UI_FLAG_FULLSCREEN;
-            uiOptions |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            getWindow().getDecorView().setSystemUiVisibility(uiOptions);
-        }
+        vidHideSysBar();
 
         setLoadSir(findViewById(R.id.live_root));
         mVideoView = findViewById(R.id.mVideoView);
@@ -131,12 +122,9 @@ public class LivePlayActivity extends BaseActivity {
         initLiveSettingGroupList();
     }
 
-    // takagen99
-    public boolean supportsPiPMode() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
-    }
+    // takagen99 : Enter PIP if supported
     @Override
-    public void onUserLeaveHint () {
+    public void onUserLeaveHint() {
         if (supportsPiPMode()) {
             enterPictureInPictureMode();
         }
@@ -147,12 +135,10 @@ public class LivePlayActivity extends BaseActivity {
         if (tvLeftChannelListLayout.getVisibility() == View.VISIBLE) {
             mHandler.removeCallbacks(mHideChannelListRun);
             mHandler.post(mHideChannelListRun);
-        }
-        else if (tvRightSettingLayout.getVisibility() == View.VISIBLE) {
+        } else if (tvRightSettingLayout.getVisibility() == View.VISIBLE) {
             mHandler.removeCallbacks(mHideSettingLayoutRun);
             mHandler.post(mHideSettingLayoutRun);
-        }
-        else {
+        } else {
             mHandler.removeCallbacks(mConnectTimeoutChangeSourceRun);
             mHandler.removeCallbacks(mUpdateNetSpeedRun);
             super.onBackPressed();
@@ -180,7 +166,9 @@ public class LivePlayActivity extends BaseActivity {
                             playNext();
                         break;
                     case KeyEvent.KEYCODE_DPAD_LEFT:
-                        playPreSource();
+                        // takagen99 : To cater for newer Android w no Menu button
+                        // playPreSource();
+                        showSettingGroup();
                         break;
                     case KeyEvent.KEYCODE_DPAD_RIGHT:
                         playNextSource();
@@ -199,6 +187,7 @@ public class LivePlayActivity extends BaseActivity {
 
     // takagen99 : Use onStopCalled to track close activity
     private boolean onStopCalled;
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -206,6 +195,7 @@ public class LivePlayActivity extends BaseActivity {
             mVideoView.resume();
         }
     }
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -230,6 +220,7 @@ public class LivePlayActivity extends BaseActivity {
             }
         }
     }
+
     // takagen99 : PIP fix to close video when close window
     @Override
     public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
@@ -293,7 +284,7 @@ public class LivePlayActivity extends BaseActivity {
                     public void onAnimationEnd(Animator animation) {
                         super.onAnimationEnd(animation);
                         mHandler.removeCallbacks(mHideChannelListRun);
-                        mHandler.postDelayed(mHideChannelListRun, 5000);
+                        mHandler.postDelayed(mHideChannelListRun, 8000);
                     }
                 });
                 animator.start();
@@ -322,8 +313,8 @@ public class LivePlayActivity extends BaseActivity {
     };
 
     private void showChannelInfo() {
-        tvChannelInfo.setText(String.format(Locale.getDefault(), "%d %s %s(%d/%d)", currentLiveChannelItem.getChannelNum(),
-                currentLiveChannelItem.getChannelName(), currentLiveChannelItem.getSourceName(),
+        tvChannelInfo.setText(String.format(Locale.getDefault(), "%d %s (%d/%d)", currentLiveChannelItem.getChannelNum(),
+                currentLiveChannelItem.getChannelName(),
                 currentLiveChannelItem.getSourceIndex() + 1, currentLiveChannelItem.getSourceNum()));
 
         FrameLayout.LayoutParams lParams = new FrameLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -336,11 +327,11 @@ public class LivePlayActivity extends BaseActivity {
             lParams.rightMargin = 60;
             lParams.topMargin = 30;
         }
-        tvChannelInfo.setLayoutParams(lParams);
+        //  tvChannelInfo.setLayoutParams(lParams);
 
         tvChannelInfo.setVisibility(View.VISIBLE);
         mHandler.removeCallbacks(mHideChannelInfoRun);
-        mHandler.postDelayed(mHideChannelInfoRun, 3000);
+        mHandler.postDelayed(mHideChannelInfoRun, 8000);
     }
 
     private Runnable mHideChannelInfoRun = new Runnable() {
@@ -425,6 +416,7 @@ public class LivePlayActivity extends BaseActivity {
                 if (holder != null)
                     holder.itemView.requestFocus();
                 tvRightSettingLayout.setVisibility(View.VISIBLE);
+                tvChannelInfo.setVisibility(View.INVISIBLE);
                 ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) tvRightSettingLayout.getLayoutParams();
                 if (tvRightSettingLayout.getVisibility() == View.VISIBLE) {
                     ViewObj viewObj = new ViewObj(tvRightSettingLayout, params);
@@ -434,7 +426,7 @@ public class LivePlayActivity extends BaseActivity {
                         @Override
                         public void onAnimationEnd(Animator animation) {
                             super.onAnimationEnd(animation);
-                            mHandler.postDelayed(mHideSettingLayoutRun, 5000);
+                            mHandler.postDelayed(mHideSettingLayoutRun, 8000);
                         }
                     });
                     animator.start();
@@ -778,7 +770,7 @@ public class LivePlayActivity extends BaseActivity {
         switch (settingGroupIndex) {
             case 0://线路切换
                 currentLiveChannelItem.setSourceIndex(position);
-                playChannel(currentChannelGroupIndex, currentLiveChannelIndex,true);
+                playChannel(currentChannelGroupIndex, currentLiveChannelIndex, true);
                 break;
             case 1://画面比例
                 livePlayerManager.changeLivePlayerScale(mVideoView, position, currentLiveChannelItem.getChannelName());
@@ -832,8 +824,7 @@ public class LivePlayActivity extends BaseActivity {
         if (list.size() == 1 && list.get(0).getGroupName().startsWith("http://127.0.0.1")) {
             showLoading();
             loadProxyLives(list.get(0).getGroupName());
-        }
-        else {
+        } else {
             liveChannelGroupList.clear();
             liveChannelGroupList.addAll(list);
             showSuccess();
@@ -970,7 +961,7 @@ public class LivePlayActivity extends BaseActivity {
     private Runnable mUpdateTimeRun = new Runnable() {
         @Override
         public void run() {
-            Date day=new Date();
+            Date day = new Date();
             SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
             tvTime.setText(df.format(day));
             mHandler.postDelayed(this, 1000);
@@ -991,7 +982,7 @@ public class LivePlayActivity extends BaseActivity {
         @Override
         public void run() {
             if (mVideoView == null) return;
-            tvNetSpeed.setText(String.format("%.2fMB/s", (float)mVideoView.getTcpSpeed() / 1024.0 / 1024.0));
+            tvNetSpeed.setText(String.format("%.2fMB/s", (float) mVideoView.getTcpSpeed() / 1024.0 / 1024.0));
             mHandler.postDelayed(this, 1000);
         }
     };
@@ -1032,8 +1023,7 @@ public class LivePlayActivity extends BaseActivity {
             if (currentLiveChannelIndex > -1)
                 mLiveChannelView.scrollToPosition(currentLiveChannelIndex);
             liveChannelItemAdapter.setSelectedChannelIndex(currentLiveChannelIndex);
-        }
-        else {
+        } else {
             mLiveChannelView.scrollToPosition(0);
             liveChannelItemAdapter.setSelectedChannelIndex(-1);
         }

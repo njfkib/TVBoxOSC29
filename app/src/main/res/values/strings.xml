@@ -19,6 +19,7 @@
     <string name="hm_file">File</string>
     <string name="hm_fav">Star</string>
     <string name="hm_setting">Menu</string>
+    <string name="hm_hist_del">Removed from History</string>
 
     // Play Detail Page //
     <string name="det_play">Play</string>
@@ -30,12 +31,12 @@
     <string name="det_fav_del">Removed from Favorite</string>
     <string name="det_fav_star">★ Favorite</string>
     <string name="det_fav_unstar">☆ Favorite</string>
-    <string name="det_source">Source</string>
+    <string name="det_source"></string>
     <string name="det_year">Year</string>
     <string name="det_area">Area</string>
     <string name="det_lang">Language</string>
     <string name="det_type">Genre</string>
-    <string name="det_actor">Star</string>
+    <string name="det_actor">Cast</string>
     <string name="det_dir">Director</string>
     <string name="det_des"></string>
 
@@ -104,5 +105,9 @@
     <string name="act_home">Home</string>
     <string name="act_player">Player</string>
     <string name="act_system">System</string>
+
+    // Fast Search Page //
+    <string name="fs_show_all">All</string>
+    <string name="fs_results">Results</string>
 
 </resources>

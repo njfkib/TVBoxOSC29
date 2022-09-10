@@ -112,16 +112,7 @@ public class PlayActivity extends BaseActivity {
     private void initView() {
 
         // takagen99 : Hide only when video playing
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            int uiOptions = getWindow().getDecorView().getSystemUiVisibility();
-            uiOptions |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-            uiOptions |= View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-            uiOptions |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-            uiOptions |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            uiOptions |= View.SYSTEM_UI_FLAG_FULLSCREEN;
-            uiOptions |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            getWindow().getDecorView().setSystemUiVisibility(uiOptions);
-        }
+        vidHideSysBar();
 
         mHandler = new Handler(new Handler.Callback() {
             @Override
@@ -319,6 +310,8 @@ public class PlayActivity extends BaseActivity {
                         String flag = info.optString("flag");
                         String url = info.getString("url");
                         HashMap<String, String> headers = null;
+                        webUserAgent = null;
+                        webHeaderMap = null;
                         if (info.has("header")) {
                             try {
                                 JSONObject hds = new JSONObject(info.getString("header"));
@@ -329,7 +322,11 @@ public class PlayActivity extends BaseActivity {
                                         headers = new HashMap<>();
                                     }
                                     headers.put(key, hds.getString(key));
+                                    if (key.equalsIgnoreCase("user-agent")) {
+                                        webUserAgent = hds.getString(key).trim();
+                                    }
                                 }
+                                webHeaderMap = headers;
                             } catch (Throwable th) {
 
                             }
@@ -399,10 +396,6 @@ public class PlayActivity extends BaseActivity {
 
     // takagen99 : Add check for external players not enter PIP
     private boolean extPlay = false;
-
-    public boolean supportsPiPMode() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
-    }
 
     @Override
     public void onUserLeaveHint() {
@@ -613,6 +606,8 @@ public class PlayActivity extends BaseActivity {
     private String progressKey;
     private String parseFlag;
     private String webUrl;
+    private String webUserAgent;
+    private Map<String, String> webHeaderMap;
 
     private void initParse(String flag, boolean useParse, String playUrl, final String url) {
         parseFlag = flag;
@@ -937,15 +932,32 @@ public class PlayActivity extends BaseActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                // webUserAgent = "Mozilla/5.0 (Linux; Android 6.0.1; Moto G (4)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Mobile Safari/537.36";
                 if (mXwalkWebView != null) {
                     mXwalkWebView.stopLoading();
-                    mXwalkWebView.clearCache(true);
-                    mXwalkWebView.loadUrl(url);
+                    Map<String, String> map = new HashMap<String, String>();
+
+                    if (webUserAgent != null) {
+                        mXwalkWebView.getSettings().setUserAgentString(webUserAgent);
+                    }
+                    //mXwalkWebView.clearCache(true);
+                    if (webHeaderMap != null) {
+                        mXwalkWebView.loadUrl(url, webHeaderMap);
+                    } else {
+                        mXwalkWebView.loadUrl(url);
+                    }
                 }
                 if (mSysWebView != null) {
                     mSysWebView.stopLoading();
-                    mSysWebView.clearCache(true);
-                    mSysWebView.loadUrl(url);
+                    if (webUserAgent != null) {
+                        mSysWebView.getSettings().setUserAgentString(webUserAgent);
+                    }
+                    //mSysWebView.clearCache(true);
+                    if (webHeaderMap != null) {
+                        mSysWebView.loadUrl(url, webHeaderMap);
+                    } else {
+                        mSysWebView.loadUrl(url);
+                    }
                 }
             }
         });
@@ -960,7 +972,7 @@ public class PlayActivity extends BaseActivity {
                     mXwalkWebView.stopLoading();
                     mXwalkWebView.loadUrl("about:blank");
                     if (destroy) {
-                        mXwalkWebView.clearCache(true);
+                        // mXwalkWebView.clearCache(true);
                         mXwalkWebView.removeAllViews();
                         mXwalkWebView.onDestroy();
                         mXwalkWebView = null;
@@ -970,7 +982,7 @@ public class PlayActivity extends BaseActivity {
                     mSysWebView.stopLoading();
                     mSysWebView.loadUrl("about:blank");
                     if (destroy) {
-                        mSysWebView.clearCache(true);
+                        // mSysWebView.clearCache(true);
                         mSysWebView.removeAllViews();
                         mSysWebView.destroy();
                         mSysWebView = null;
@@ -1066,7 +1078,8 @@ public class PlayActivity extends BaseActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
-        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        // settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         /* 添加webView配置 */
         //设置编码
         settings.setDefaultTextEncodingName("utf-8");
@@ -1226,7 +1239,8 @@ public class PlayActivity extends BaseActivity {
         settings.setLoadWithOverviewMode(true);
         settings.setBuiltInZoomControls(true);
         settings.setSupportZoom(false);
-        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        // settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         // settings.setUserAgentString(ANDROID_UA);
 
         webView.setBackgroundColor(Color.BLACK);

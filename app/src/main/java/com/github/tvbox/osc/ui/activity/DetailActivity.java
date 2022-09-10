@@ -720,11 +720,6 @@ public class DetailActivity extends BaseActivity {
         EventBus.getDefault().unregister(this);
     }
 
-    // takagen99 : Check for PiP supported
-    public boolean supportsPiPMode() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
-    }
-
     @Override
     public void onUserLeaveHint() {
         // takagen99 : Additional check for external player
@@ -744,17 +739,6 @@ public class DetailActivity extends BaseActivity {
             if (playFragment.onBackPressed())
                 return;
             toggleFullPreview();
-            // takagen99 : Show Nav Bar
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                int uiOptions = getWindow().getDecorView().getSystemUiVisibility();
-                uiOptions &= ~View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-                uiOptions &= ~View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-                uiOptions &= ~View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-                uiOptions &= ~View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-                uiOptions &= ~View.SYSTEM_UI_FLAG_FULLSCREEN;
-                uiOptions &= ~View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-                getWindow().getDecorView().setSystemUiVisibility(uiOptions);
-            }
             mGridView.requestFocus();
             return;
         }
@@ -796,9 +780,6 @@ public class DetailActivity extends BaseActivity {
     boolean fullWindows = false;
     ViewGroup.LayoutParams windowsPreview = null;
     ViewGroup.LayoutParams windowsFull = null;
-    ViewGroup playerParent = null;
-    View playerRoot = null;
-    ViewGroup llLayoutParent = null;
 
     void toggleFullPreview() {
         if (windowsPreview == null) {
@@ -807,37 +788,34 @@ public class DetailActivity extends BaseActivity {
         if (windowsFull == null) {
             windowsFull = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         }
-        if (playerRoot == null)
-            playerRoot = (View) llPlayerFragmentContainer.findViewById(R.id.mVideoView).getParent();
 
-        if (playerParent == null) {
-            playerParent = (ViewGroup) playerRoot.getParent();
-        }
-        if (llLayoutParent == null)
-            llLayoutParent = (ViewGroup) llLayout.getParent();
-
+        // Full Window flag
         fullWindows = !fullWindows;
-        // llPlayerFragmentContainer.setLayoutParams(fullWindows ? windowsFull : windowsPreview);
+        llPlayerFragmentContainer.setLayoutParams(fullWindows ? windowsFull : windowsPreview);
         llPlayerFragmentContainerBlock.setVisibility(fullWindows ? View.GONE : View.VISIBLE);
+        mGridView.setVisibility(fullWindows ? View.GONE : View.VISIBLE);
+        mGridViewFlag.setVisibility(fullWindows ? View.GONE : View.VISIBLE);
+
+        // 全屏下禁用详情页几个按键的焦点 防止上键跑过来 : Disable buttons when full window
+        tvPlay.setFocusable(!fullWindows);
+        tvSort.setFocusable(!fullWindows);
+        tvCollect.setFocusable(!fullWindows);
+        tvQuickSearch.setFocusable(!fullWindows);
+
+        // Hide navbar only when video playing on full window, else show navbar
         if (fullWindows) {
-            playerParent.removeView(playerRoot);
-            ((ViewGroup) getWindow().getDecorView()).addView(playerRoot);
-            llLayoutParent.removeView(llLayout);
-            // takagen99 : Hide only when video playing
+            vidHideSysBar();
+        } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 int uiOptions = getWindow().getDecorView().getSystemUiVisibility();
-                uiOptions |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-                uiOptions |= View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-                uiOptions |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-                uiOptions |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-                uiOptions |= View.SYSTEM_UI_FLAG_FULLSCREEN;
-                uiOptions |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+                uiOptions &= ~View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+                uiOptions &= ~View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+                uiOptions &= ~View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+                uiOptions &= ~View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+                uiOptions &= ~View.SYSTEM_UI_FLAG_FULLSCREEN;
+                uiOptions &= ~View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
                 getWindow().getDecorView().setSystemUiVisibility(uiOptions);
             }
-        } else {
-            ((ViewGroup) getWindow().getDecorView()).removeView(playerRoot);
-            playerParent.addView(playerRoot);
-            llLayoutParent.addView(llLayout);
         }
     }
 }
